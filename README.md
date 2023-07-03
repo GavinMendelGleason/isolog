@@ -67,6 +67,8 @@ that more standard integer and float types can be seen as subsets, and
 type String = { x : Bytes | is_utf8(x) }
 ```
 
+This shows that string is a subset of bytes, i.e., `String < Bytes`.
+
 We can form a subset of the integers which respresents u32s as:
 
 ```prolog
@@ -84,8 +86,8 @@ type PhoneNumber = { x : String | x =~ /[\d-]+/ }
 ```
 Pair
 Sum
-[Type*]
-Type!
+[_]
+_!
 ```
 
 iosolog also admits the above types as combinations of other
@@ -181,10 +183,10 @@ relation people < { x : Dict | x : { name : Utf8, id : Integer, age in Integer }
                 & Self.unique(id)
 from { type: 'MySQL',
        host: 'localhost',
-       name: 'People',
+       name: 'HR',
        password: 'secret',
        user: 'admin',
-       table: '' }
+       table: 'people' }
 ```
 
 This says that the `People` relation is a subset of the dict records
@@ -194,8 +196,10 @@ definition).
 
 ## Queries
 
-A query in isolog uses constraints and unification. Using the above
-people relation, we can find all adaults in our database with the following:
+A query in isolog uses constraints and unification.
+
+Using the above people relation, we can find all adaults in our
+database with the following:
 
 ```prolog
 people({ name : Name, id: Id, age: Age }), Age > 18.
@@ -210,3 +214,28 @@ people(Person), Person.age > 18.
 This approach generalises over a large number of databases. For
 instance, if we wanted to find a record in a mongo collection, we
 could simply change the `from` definition we used.
+
+Using this system we can easily federate queries over multiple
+systems. The query compiler will try to arrange constraints such that
+they are utilised in the query itself (by re-arranging constraints on
+variables in the query order) but we can also utilise the constraint
+information with indexes if these are known to exist.
+
+To use an RDF database, such as TerminusDB, we can write something
+along the lines of:
+
+```prolog
+relation event < { x : Dict | x : { name : Utf8, id : Integer, time : DateTime }}
+                 & Self.unique(id)
+from { type: 'TerminusDB',
+       host: 'localhost',
+       name: 'my_team/my_graph',
+       password: 'secret',
+       user: 'admin',
+       class: 'Person' }
+```
+
+## Transactions
+
+Transactions across federation are always a very difficult problem. We
+can not guarantee that transactions will complete successfully.
