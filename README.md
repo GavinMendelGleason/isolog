@@ -157,14 +157,18 @@ If we want the dictionary to be fully defined by the type spec, we can write:
 type Named = { x : Dict | x : { name : String! } }
 ```
 
+And in fact, since the contraint is just a reiteration of the type, we can simply write:
 
-but it could have anything else as well.
+```prolog
+type Named = { name : String! }
+```
 
-In combination with the primitive types, we can write:
+This approach can be used to define all JSON dictionaries. Using
+dictionaries and primitive types, we can write:
 
 ```prolog
 type JSONLeaf = Null | String | Number
-type JSON = { x : Dict | x[_] in (JSONLeaf | Array<JSON> | JSON) }
+type JSON = { x : Dict | x[_] : (JSONLeaf | [JSON] | JSON) }
 ```
 
 ## Predicates
